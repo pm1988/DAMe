@@ -34,7 +34,7 @@ HAP={}
 ##################################
 
 ### Read tags [Format:  TagSeq\tTagName]
-TAGS=readTags(tags, TAGS)
+(TAGS, tagLength)=readTags(tags, TAGS)
 ### Read primers [Format:  PrimerSetName\tForwardSeq\tReverSeq]
 PRIMERS=readPrimers(primers, PRIMERS, AMBIG)
 
@@ -45,7 +45,7 @@ while line:
 	line= file.readline()  ### seq line. 
 	line=line.rstrip()
 	## Find primer and tags. RC the between if reverse. If it does not exist in the list (seq err or Ns or whatever) set a flag called Error
-	Info= GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq)
+	Info= GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength)
 	if len(Info)==1: # If there's a seq error
 		line= file.readline()  ## "+" line. Ignore
 		line= file.readline() ## Qual line. Ignore

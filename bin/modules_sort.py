@@ -15,19 +15,28 @@ def RC(seq):
 
 def readTags(tags, TAGS):
 	file=open(tags)
-	line= file.readline()   
+	line= file.readline()
+        tagLength = -1
 	while line:
-		line=line.rstrip().split()
+		line=line.strip().split()
 		#Initialize it in the dictionary
 		if not TAGS.has_key(line[1]): 
 			TAGS[line[1]]=[] 
 		#Fill it
 		TAGS[line[1]].append(line[0])
 		TAGS[line[1]].append(RC(line[0]))
+                if tagLength == -1:
+                        tagLength = len(line[0])
+                elif tagLength == 0:
+                        pass
+                elif tagLength != len(line[0]):
+                        print 'Tags are not all the same length.'
+                        print 'Will only search for the combination of tag and primer at the beginning of the line.'
+                        tagLength = 0
 		#Read next line
 		line= file.readline()   
 	file.close()
-	return TAGS
+	return (TAGS, tagLength)
 
 
 def readPrimers(primers, PRIMERS, AMBIG):
@@ -60,7 +69,11 @@ def readPrimers(primers, PRIMERS, AMBIG):
 
 
 
-def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq):
+def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength):
+        ## Key change made on 2 June 2016 Shyam
+        ## the length of the tags must be the same for
+        ## all the tags.
+        ## IF NOT, then the program will __not work__
 	for key in PRIMERS:
 		#For a forward seq
 		primIniPos= [(m.start(0), m.end(0)) for m in re.finditer(PRIMERS[key][0][0], line)]
@@ -86,8 +99,12 @@ def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq):
 					return [1]
 				else:
 					#Figure out the names of the tags
-					tag1= line[:primIniPosTags]    
-					tag2= line[primFinPosTags:]
+                                        if tagLength == 0:
+					        tag1= line[:primIniPosTags]    
+				                tag2= line[primFinPosTags:]
+                                        else:
+					        tag1= line[(primIniPosTags-tagLength):primIniPosTags]    
+				                tag2= line[primFinPosTags:(primFinPosTags+tagLength)]
 					tagName1= [tagName for tagName in TAGS if TAGS[tagName][0]==tag1] 
 					tagName2= [tagName for tagName in TAGS if TAGS[tagName][1]==tag2]  
 					if len(tagName1)>0 and len(tagName2)>0:
@@ -123,8 +140,13 @@ def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq):
 						between=RC(between)  ## Since this is a reverse seq, reverse complement the sequence
 						#Figure out the names of the tags
 						# here the tags used are reversed because the seq was reversed. Tag1 is tag2 and tag2 is tag1
-						tag1= line[:primIniPosTags]    
-						tag2= line[primFinPosTags:]
+					        #Figure out the names of the tags
+                                                if tagLength == 0:
+					                tag1= line[:primIniPosTags]    
+				                        tag2= line[primFinPosTags:]
+                                                else:
+					                tag1= line[(primIniPosTags-tagLength):primIniPosTags]    
+				                        tag2= line[primFinPosTags:(primFinPosTags+tagLength)]
 						tagName2= [tagName for tagName in TAGS if TAGS[tagName][0]==tag1]  
 						tagName1= [tagName for tagName in TAGS if TAGS[tagName][1]==tag2]  
 						if len(tagName1)>0 and len(tagName2)>0:
