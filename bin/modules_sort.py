@@ -64,6 +64,7 @@ def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq):
 	for key in PRIMERS:
 		#For a forward seq
 		primIniPos= [(m.start(0), m.end(0)) for m in re.finditer(PRIMERS[key][0][0], line)]
+                ### primIniPos contains the start and end positions of forward primer match in the sequence ++ FR
 		if len(primIniPos)>0: # If it's a forward read and there are no seq errs in the primer seq
 			if keepPrimersSeq: 		
 				primIniPosPrim=primIniPos[0][0]   
@@ -98,6 +99,7 @@ def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq):
 				return [1]
 		else:  #For a reverse seq
 			primIniPos= [(m.start(0), m.end(0)) for m in re.finditer(PRIMERS[key][0][1], line)]
+                        ### Now the primIniPos contains the start and end positions of the RC primer match in the seq ++ RC
 			if len(primIniPos)>0:
 				if keepPrimersSeq: 		
 					primIniPosPrim=primIniPos[0][0]   
