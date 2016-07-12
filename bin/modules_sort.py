@@ -31,7 +31,7 @@ def readTags(tags, TAGS):
                         pass
                 elif tagLength != len(line[0]):
                         print 'Tags are not all the same length.'
-                        print 'Will only search for the combination of tag and primer at the beginning of the line.'
+                        print 'By default, the option to choose longest best match has been enabled.'
                         tagLength = 0
 		#Read next line
 		line= file.readline()   
@@ -61,19 +61,67 @@ def readPrimers(primers, PRIMERS, AMBIG):
 		PRIMERS[line[0]][0].append(F)   ## Possible on A side. Forward normal (regExp)
 		PRIMERS[line[0]][0].append(R)   ## Possible on A side. Reverse normal (regExp)
 		PRIMERS[line[0]][1].append(Frc)   ## Possible on A side. RC(Forward) (regExp)
-		PRIMERS[line[0]][1].append(Rrc)   ## Possible on A side. RC(Forward) (regExp)
+		PRIMERS[line[0]][1].append(Rrc)   ## Possible on A side. RC(Reverse) (regExp)
 		#Read next line
 		line= file.readline()   
 	file.close()
 	return PRIMERS
 
 
+def findHammingDistance(seq1, seq2):
+        """This function finds the difference between two given
+        sequences. If the sequences are different lengths, then
+        it returns a large difference.
+        """
+        if len(seq1) != len(seq2):
+                return(50)
+        dist = 0
+        for index in range(len(seq1)):
+                dist += (seq1[index] != seq2[index])
+        return dist
 
-def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength):
+def findBestTag(seq, TAGS, reverse=False):
+        """This function finds the best tag for the sequence
+        irrespective of the length. If there are multiple tags
+        with the same number of mismatches, then it returns the
+        longest one as the best match.
+        """
+        bestDist = 100
+        bestTag = ""
+        bestLength = 0
+        numBest = 0
+        if reverse:
+                index = 1
+        else:
+                index = 0
+        for tag in TAGS:
+                curtaglen = len(TAGS[tag][0])
+                dist = findHammingDistance(seq, TAGS[tag][index])
+                if fdist < bestDist or (fdist == bestDist and curtaglen > bestLength):
+                        bestDist = fdist
+                        bestTag = tag
+                        bestLength = curtaglen
+                        numBest = 1
+                elif fdist == bestDist and curtaglen == bestLength:
+                        numBest += 1
+        if bestDist != 0 or numBest != 1:
+                return []
+        else:
+                return [bestTag]
+
+
+def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength, keepLongest=False):
         ## Key change made on 2 June 2016 Shyam
         ## the length of the tags must be the same for
         ## all the tags.
         ## IF NOT, then the program will __not work__
+        ## Change 2 on 10th July 2016 - tags of different
+        ## lengths will work if you allow the best tag
+        ## to be chosen based on length of match.
+        ## Another key change - 10th July 2016 - now the tag
+        ## primer combination does not have to be at the start
+        ## of the read. You are allowed to have some space
+        ## between start of read and start of tag+primer.
 	for key in PRIMERS:
 		#For a forward seq
 		primIniPos= [(m.start(0), m.end(0)) for m in re.finditer(PRIMERS[key][0][0], line)]
@@ -100,13 +148,11 @@ def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength):
 				else:
 					#Figure out the names of the tags
                                         if tagLength == 0:
-					        tag1= line[:primIniPosTags]    
-				                tag2= line[primFinPosTags:]
+                                                tagName1 = findBestTag(line[:primIniPosTags], TAGS)
+                                                tagName2 = findBestTag(line[primFinPosTags:], TAGS, True)
                                         else:
-					        tag1= line[(primIniPosTags-tagLength):primIniPosTags]    
-				                tag2= line[primFinPosTags:(primFinPosTags+tagLength)]
-					tagName1= [tagName for tagName in TAGS if TAGS[tagName][0]==tag1] 
-					tagName2= [tagName for tagName in TAGS if TAGS[tagName][1]==tag2]  
+                                                tagName1= [tagName for tagName in TAGS if TAGS[tagName][0]==line[(primIniPosTags-tagLength):primIniPosTags]]
+                                                tagName2= [tagName for tagName in TAGS if TAGS[tagName][1]==line[primFinPosTags:(primFinPosTags+tagLength)]]
 					if len(tagName1)>0 and len(tagName2)>0:
 						tagName1=tagName1[0]
 						tagName2=tagName2[0]
@@ -142,13 +188,11 @@ def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength):
 						# here the tags used are reversed because the seq was reversed. Tag1 is tag2 and tag2 is tag1
 					        #Figure out the names of the tags
                                                 if tagLength == 0:
-					                tag1= line[:primIniPosTags]    
-				                        tag2= line[primFinPosTags:]
+                                                        tagName1 = findBestTag(line[:primIniPosTags], TAGS)
+                                                        tagName2 = findBestTag(line[primFinPosTags:], TAGS, True)
                                                 else:
-					                tag1= line[(primIniPosTags-tagLength):primIniPosTags]    
-				                        tag2= line[primFinPosTags:(primFinPosTags+tagLength)]
-						tagName2= [tagName for tagName in TAGS if TAGS[tagName][0]==tag1]  
-						tagName1= [tagName for tagName in TAGS if TAGS[tagName][1]==tag2]  
+                                                        tagName2= [tagName for tagName in TAGS if TAGS[tagName][0]==line[(primIniPosTags-tagLength):primIniPosTags]]  
+                                                        tagName1= [tagName for tagName in TAGS if TAGS[tagName][1]==line[primFinPosTags:(primFinPosTags+tagLength)]]  
 						if len(tagName1)>0 and len(tagName2)>0:
 							tagName1=tagName1[0]
 							tagName2=tagName2[0]

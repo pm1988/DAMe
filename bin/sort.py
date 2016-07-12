@@ -8,6 +8,7 @@ parser.add_argument("-fq", required=True, help='Input fastq with amplicon sequen
 parser.add_argument("-p",  required=True, help='Input text file with primer name and forward and reverse sequences [Format: Name\tForwardSeq\tReverSeq]')
 parser.add_argument("-t",  required=True, help='Input text file with tag names and sequences [Format: TagSeq\tTagName]')
 parser.add_argument("--keepPrimersSeq",  help='Use this parameter if you want to keep the primer sequences from the amplicon instead of trimming it [default not set]', action="store_true")
+parser.add_argument("-l", "--longestTagMatch", dest="longest", help='Find best longest match - useful if all tags are not the same length', action="store_true")
 
 args = parser.parse_args()
 
@@ -35,6 +36,9 @@ HAP={}
 
 ### Read tags [Format:  TagSeq\tTagName]
 (TAGS, tagLength)=readTags(tags, TAGS)
+if tagLength == 0:
+        args.longest = True
+
 ### Read primers [Format:  PrimerSetName\tForwardSeq\tReverSeq]
 PRIMERS=readPrimers(primers, PRIMERS, AMBIG)
 
