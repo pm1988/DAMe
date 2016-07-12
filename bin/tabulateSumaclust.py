@@ -28,6 +28,9 @@ if __name__ == '__main__':
         print "You can use only one of -blast and -bold."
         print "Choosing the blast option."
         args.bold = False
+    if args.bold:
+        print "The -bold option is not implemented yet."
+        args.bold = False
 
 
 infile = open(args.fasta)
@@ -44,9 +47,9 @@ for line in infile:
         if toks[5] == "cluster_center=True;": ## Cluster center, so save its sequence
             clusterCenter = True
         else:
-            ## if seq was not empty then we were at cluster center,
-            ## so save the seq
             clusterCenter = False
+        ## if seq was not empty then we were at cluster center,
+        ## so save the seq
         if (seq != ""):
             otuSeq[otunum[clustname]] = seq
             #print otunum[clustname], clustname, seq
@@ -87,6 +90,8 @@ if args.scale > 0:
     print "Scaled all samples to", args.scale, "reads."
 
 outfile = open(args.out, "w")
+if args.blast:
+    blastfile = open(args.out+".blast.txt", "w")
 outfile.write("OTU\t")
 outfile.write("\t".join(samples))
 outfile.write("\tSeq\n")
@@ -102,4 +107,11 @@ for index in range(1,len(otunum)+1):
     outline.append(otuSeq[curOtu])
     outfile.write("\t".join(outline))
     outfile.write("\n")
+    if args.blast:
+        blastfile.write(">"+curOtu+"\n")
+        blastfile.write(otuSeq[curOtu]+"\n")
 outfile.close()
+if args.blast:
+    blastfile.close()
+    print "Blast can be run using the blast input fasta file:", args.out+".blast.txt"
+    
