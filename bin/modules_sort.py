@@ -97,12 +97,12 @@ def findBestTag(seq, TAGS, reverse=False):
         for tag in TAGS:
                 curtaglen = len(TAGS[tag][0])
                 dist = findHammingDistance(seq, TAGS[tag][index])
-                if fdist < bestDist or (fdist == bestDist and curtaglen > bestLength):
-                        bestDist = fdist
+                if dist < bestDist or (dist == bestDist and curtaglen > bestLength):
+                        bestDist = dist
                         bestTag = tag
                         bestLength = curtaglen
                         numBest = 1
-                elif fdist == bestDist and curtaglen == bestLength:
+                elif dist == bestDist and curtaglen == bestLength:
                         numBest += 1
         if bestDist != 0 or numBest != 1:
                 return []
