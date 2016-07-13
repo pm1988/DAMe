@@ -30,8 +30,6 @@ def readTags(tags, TAGS):
                 elif tagLength == 0:
                         pass
                 elif tagLength != len(line[0]):
-                        print 'Tags are not all the same length.'
-                        print 'By default, the option to choose longest best match has been enabled.'
                         tagLength = 0
 		#Read next line
 		line= file.readline()   

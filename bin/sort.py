@@ -36,7 +36,9 @@ HAP={}
 
 ### Read tags [Format:  TagSeq\tTagName]
 (TAGS, tagLength)=readTags(tags, TAGS)
-if tagLength == 0:
+if tagLength == 0 and not args.longest:
+        print 'Tags are not all the same length.'
+        print 'By default, the option to choose longest best match has been enabled.'
         args.longest = True
 
 ### Read primers [Format:  PrimerSetName\tForwardSeq\tReverSeq]
