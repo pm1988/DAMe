@@ -1,11 +1,11 @@
 import os
 
 
-def makePSnumFiles(PSinfo, X, P, chimeraChecked):
+def makePSnumFiles(PSinfo, X, P, chimeraChecked, outdir):
 	#Open the PS#.txt out handlers
 	PSouts=[]
 	for i in range(X):
-		PSouts.append(open("PS%s_files.txt"%(i+1), "w"))
+		PSouts.append(open(outdir+"/PS%s_files.txt"%(i+1), "w"))
 	#Fill the opened handlers. Parse the PSinfo.txt
 	PSinfo=open(PSinfo)
 	PS=PSinfo.readlines()
@@ -31,10 +31,10 @@ def makePSnumFiles(PSinfo, X, P, chimeraChecked):
 
 
 
-def ReadPSnumFiles(X):
+def ReadPSnumFiles(X, outdir):
 	PSins=[]
 	for i in range(X):
-		PSins.append(open("PS%s_files.txt"%(i+1)))
+		PSins.append(open(outdir+"/PS%s_files.txt"%(i+1)))
 	PSinsLines={}
 	for i in range(X): 
 		PSinsLines[str(i)]=PSins[i].readlines()

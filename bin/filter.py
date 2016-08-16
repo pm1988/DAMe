@@ -15,7 +15,7 @@ parser.add_argument("-p", type=int, default=1, help='The number of pools in whic
 parser.add_argument("-t",type=int, default=1, help='Number of times a unique sequence has to be present')
 parser.add_argument("-l",type=int, default=100, help='Minimum sequence length')
 parser.add_argument("--chimeraChecked",  help='Use this parameter if you have performed a chimera check on the sorted collapsed sequence files [default not set]', action="store_true")
-
+parser.add_argument("-o", "--outDir", dest="out", type=str, help="Output directory", default=".")
 args = parser.parse_args()
 
 ####################
@@ -33,24 +33,24 @@ L= args.l
 
 chimeraChecked=args.chimeraChecked
 
-OUT=open("Comparisons_%sPCRs.txt"%(X), "w")  
-OUTYX=open("Comparisons_%soutOf%sPCRs.txt"%( Y, X), "w")  
-OUTthresh=open("Comparisons_%soutOf%sPCRs.countsThreshold%s.txt"%( Y, X, T), "w")  
-OUT_fas=open("Comparisons_%sPCRs.fasta"%( X), "w")  
-OUTYX_fas=open("FilteredReads_atLeast%s.fasta"%(Y), "w")  
-OUTthresh_fas=open("FilteredReads_atLeast%s.threshold.fasta"%( Y), "w")  
-OUTthreshLen_fas=open("FilteredReads.fna", "w") # The one where the threshold reads were further filtered by length. The final one to keep using 
+OUT=open(args.out+"/Comparisons_%sPCRs.txt"%(X), "w")  
+OUTYX=open(args.out+"/Comparisons_%soutOf%sPCRs.txt"%( Y, X), "w")  
+OUTthresh=open(args.out+"/Comparisons_%soutOf%sPCRs.countsThreshold%s.txt"%( Y, X, T), "w")  
+OUT_fas=open(args.out+"/Comparisons_%sPCRs.fasta"%( X), "w")  
+OUTYX_fas=open(args.out+"/FilteredReads_atLeast%s.fasta"%(Y), "w")  
+OUTthresh_fas=open(args.out+"/FilteredReads_atLeast%s.threshold.fasta"%( Y), "w")  
+OUTthreshLen_fas=open(args.out+"/FilteredReads.fna", "w") # The one where the threshold reads were further filtered by length. The final one to keep using 
 
 
 #################################################################### Main program
 
 #### Make the PS#.txt files OUTs of the PSinfo.txt file
-makePSnumFiles(PSinfo, X, P, chimeraChecked)
+makePSnumFiles(PSinfo, X, P, chimeraChecked, args.out)
 
 ##### Make the comparison of how many counts are per PSset per seq 
 
 #Open the PS#_files.txt IN handlers and read them
-PSinsLines=ReadPSnumFiles(X)
+PSinsLines=ReadPSnumFiles(X, args.out)
 
 #Get the names of the samples
 sampleName=MakeSampleNameArray(PSinfo)
