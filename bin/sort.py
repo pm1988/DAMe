@@ -15,6 +15,7 @@ args = parser.parse_args()
 ####################
 
 from modules_sort import *
+import gzip as gz
 
 ######################
 ##Initialize variables
