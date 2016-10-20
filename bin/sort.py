@@ -45,7 +45,10 @@ if tagLength == 0 and not args.longest:
 PRIMERS=readPrimers(primers, PRIMERS, AMBIG)
 
 ### Sort the sequences into tag combinatios and collapse them
-file = open(filename)
+if (filename[-3:] == ".gz"):
+	file = gz.open(filename)
+else:
+	file = open(filename)
 line= file.readline()    ### header line. 
 while line:
 	line= file.readline()  ### seq line. 
