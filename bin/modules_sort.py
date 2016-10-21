@@ -66,49 +66,49 @@ def readPrimers(primers, PRIMERS, AMBIG):
 	return PRIMERS
 
 
-def findHammingDistance(seq1, seq2):
-        """This function finds the difference between two given
-        sequences. If the sequences are different lengths, then
-        it returns a large difference.
-        """
-        if len(seq1) != len(seq2):
-                return(50)
-        dist = 0
-        for index in range(len(seq1)):
-                dist += (seq1[index] != seq2[index])
-        return dist
+# def findHammingDistance(seq1, seq2):
+#         """This function finds the difference between two given
+#         sequences. If the sequences are different lengths, then
+#         it returns a large difference.
+#         """
+#         if len(seq1) != len(seq2):
+#                 return(50)
+#         dist = 0
+#         for index in range(len(seq1)):
+#                 dist += (seq1[index] != seq2[index])
+#         return dist
 
-def findBestTag(seq, TAGS, reverse=False):
-        """This function finds the best tag for the sequence
-        irrespective of the length. If there are multiple tags
-        with the same number of mismatches, then it returns the
-        longest one as the best match.
-        """
-        bestDist = 100
-        bestTag = ""
-        bestLength = 0
-        numBest = 0
-        if reverse:
-                index = 1
-        else:
-                index = 0
-        for tag in TAGS:
-                curtaglen = len(TAGS[tag][0])
-                dist = findHammingDistance(seq, TAGS[tag][index])
-                if dist < bestDist or (dist == bestDist and curtaglen > bestLength):
-                        bestDist = dist
-                        bestTag = tag
-                        bestLength = curtaglen
-                        numBest = 1
-                elif dist == bestDist and curtaglen == bestLength:
-                        numBest += 1
-        if bestDist != 0 or numBest != 1:
-                return []
-        else:
-                return [bestTag]
+# def findBestTag(seq, TAGS, reverse=False):
+#         """This function finds the best tag for the sequence
+#         irrespective of the length. If there are multiple tags
+#         with the same number of mismatches, then it returns the
+#         longest one as the best match.
+#         """
+#         bestDist = 100
+#         bestTag = ""
+#         bestLength = 0
+#         numBest = 0
+#         if reverse:
+#                 index = 1
+#         else:
+#                 index = 0
+#         for tag in TAGS:
+#                 curtaglen = len(TAGS[tag][0])
+#                 dist = findHammingDistance(seq, TAGS[tag][index])
+#                 if dist < bestDist or (dist == bestDist and curtaglen > bestLength):
+#                         bestDist = dist
+#                         bestTag = tag
+#                         bestLength = curtaglen
+#                         numBest = 1
+#                 elif dist == bestDist and curtaglen == bestLength:
+#                         numBest += 1
+#         if bestDist != 0 or numBest != 1:
+#                 return []
+#         else:
+#                 return [bestTag]
 
 
-def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength, keepLongest=False):
+def GetPiecesInfo(line, PRIMERS, TAGS):#, keepPrimersSeq):
         ## Key change made on 2 June 2016 Shyam
         ## the length of the tags must be the same for
         ## all the tags.
@@ -121,88 +121,107 @@ def GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength, keepLongest=Fa
         ## of the read. You are allowed to have some space
         ## between start of read and start of tag+primer.
 	for key in PRIMERS:
-		#For a forward seq
+		#Primer combination found is F-R'
 		primIniPos= [(m.start(0), m.end(0)) for m in re.finditer(PRIMERS[key][0][0], line)]
                 ### primIniPos contains the start and end positions of forward primer match in the sequence ++ FR
 		if len(primIniPos)>0: # If it's a forward read and there are no seq errs in the primer seq
-			if keepPrimersSeq: 		
-				primIniPosPrim=primIniPos[0][0]   
-				primIniPosTags=primIniPos[0][0]
-			else:
-				primIniPosPrim=primIniPos[0][1] 
-				primIniPosTags=primIniPos[0][0]
+                        primIniPosPrim=primIniPos[0][1] 
+                        primIniPosTags=primIniPos[0][0]
 			primFinPos=[(m.start(0), m.end(0)) for m in re.finditer(PRIMERS[key][1][1], line)]
 			if len(primFinPos)>0: #If there's no seq error in the primer seq
-				if keepPrimersSeq: 		
-					primFinPosPrim=primFinPos[0][1]   
-					primFinPosTags=primFinPos[0][1]
-				else:
-					primFinPosPrim=primFinPos[0][0] 
-					primFinPosTags=primFinPos[0][1]
+                                primFinPosPrim=primFinPos[0][0] 
+                                primFinPosTags=primFinPos[0][1]
 				PrimerName=key
 				between=line[primIniPosPrim:primFinPosPrim]  
 				if len(between)==0:    #If the seq only contained primers and no amplified barcode
 					return [1]
 				else:
-					#Figure out the names of the tags
-                                        if tagLength == 0:
-                                                tagName1 = findBestTag(line[:primIniPosTags], TAGS)
-                                                tagName2 = findBestTag(line[primFinPosTags:], TAGS, True)
+					# #Figure out the names of the tags
+                                        tags = [tagName for tagName in TAGS if TAGS[tagName][0]==line[(primIniPosTags-len(TAGS[tagName][0])):primIniPosTags]]
+                                        bl1 = 0
+                                        numbl1 = 0
+                                        tagName1 = ""
+                                        for tt in tags:
+                                                curlength = len(TAGS[tt][0])
+                                                if curlength > bl1:
+                                                        bl1 = curlength
+                                                        tagName1 = tt
+                                                        numbl1 = 1
+                                                elif curlength == bl1:
+                                                        tagName1 = ""
+                                                        numbl1 += 1
+                                        #print tagName1, bl1, numbl1, len(tags)
+                                        tags = [tagName for tagName in TAGS if TAGS[tagName][1]==line[primFinPosTags:(primFinPosTags+len(TAGS[tagName][1]))]]
+                                        bl1 = 0
+                                        numbl1 = 0
+                                        tagName2 = ""
+                                        for tt in tags:
+                                                curlength = len(TAGS[tt][0])
+                                                if curlength > bl1:
+                                                        bl1 = curlength
+                                                        tagName2 = tt
+                                                        numbl1 = 1
+                                                elif curlength == bl1:
+                                                        tagName2 = ""
+                                                        numbl1 += 1
+					if len(tagName1)==0 or len(tagName2)==0:
+						return [2]
                                         else:
-                                                tagName1= [tagName for tagName in TAGS if TAGS[tagName][0]==line[(primIniPosTags-tagLength):primIniPosTags]]
-                                                tagName2= [tagName for tagName in TAGS if TAGS[tagName][1]==line[primFinPosTags:(primFinPosTags+tagLength)]]
-					if len(tagName1)>0 and len(tagName2)>0:
-						tagName1=tagName1[0]
-						tagName2=tagName2[0]
-					else: #If there was a seq error in the tags
-						return [1]
+                                                Info=[tagName1, tagName2 , PrimerName, between, 0]
+                                                return Info
 			else:
-				return [1]
-		else:  #For a reverse seq
+				return [3]
+		else:
+                        # Primer combination found is R-F'
 			primIniPos= [(m.start(0), m.end(0)) for m in re.finditer(PRIMERS[key][0][1], line)]
-                        ### Now the primIniPos contains the start and end positions of the RC primer match in the seq ++ RC
 			if len(primIniPos)>0:
-				if keepPrimersSeq: 		
-					primIniPosPrim=primIniPos[0][0]   
-					primIniPosTags=primIniPos[0][0]
-				else:
-					primIniPosPrim=primIniPos[0][1] 
-					primIniPosTags=primIniPos[0][0]
+                                primIniPosPrim=primIniPos[0][1] 
+                                primIniPosTags=primIniPos[0][0]
 				primFinPos=[(m.start(0), m.end(0)) for m in re.finditer(PRIMERS[key][1][0], line)]
 				if len(primFinPos)>0: #If there's no seq error in the primer seq
-					if keepPrimersSeq: 		
-						primFinPosPrim=primFinPos[0][1]   
-						primFinPosTags=primFinPos[0][1] 
-					else:
-						primFinPosPrim=primFinPos[0][0] 
-						primFinPosTags=primFinPos[0][1] 
+                                        primFinPosPrim=primFinPos[0][0] 
+                                        primFinPosTags=primFinPos[0][1] 
 					PrimerName=key
 					between=line[primIniPosPrim:primFinPosPrim]  
 					if len(between)==0:
 						return [1]
 					else:
 						between=RC(between)  ## Since this is a reverse seq, reverse complement the sequence
-						#Figure out the names of the tags
-						# here the tags used are reversed because the seq was reversed. Tag1 is tag2 and tag2 is tag1
-					        #Figure out the names of the tags
-                                                if tagLength == 0:
-                                                        tagName1 = findBestTag(line[:primIniPosTags], TAGS)
-                                                        tagName2 = findBestTag(line[primFinPosTags:], TAGS, True)
+                                                tags = [tagName for tagName in TAGS if TAGS[tagName][0]==line[(primIniPosTags-len(TAGS[tagName][0])):primIniPosTags]]
+                                                bl1 = 0
+                                                numbl1 = 0
+                                                tagName1 = ""
+                                                for tt in tags:
+                                                        curlength = len(TAGS[tt][0])
+                                                        if curlength > bl1:
+                                                                bl1 = curlength
+                                                                tagName1 = tt
+                                                                numbl1 = 1
+                                                        elif curlength == bl1:
+                                                                tagName1 = ""
+                                                                numbl1 += 1
+                                                tags = [tagName for tagName in TAGS if TAGS[tagName][1]==line[primFinPosTags:(primFinPosTags+len(TAGS[tagName][1]))]]
+                                                bl1 = 0
+                                                numbl1 = 0
+                                                tagName2 = ""
+                                                for tt in tags:
+                                                        curlength = len(TAGS[tt][0])
+                                                        if curlength > bl1:
+                                                                bl1 = curlength
+                                                                tagName2 = tt
+                                                                numbl1 = 1
+                                                        elif curlength == bl1:
+                                                                tagName2 = ""
+                                                                numbl1 += 1
+						if len(tagName1)==0 or len(tagName2)==0:
+							return [2]
                                                 else:
-                                                        tagName2= [tagName for tagName in TAGS if TAGS[tagName][0]==line[(primIniPosTags-tagLength):primIniPosTags]]  
-                                                        tagName1= [tagName for tagName in TAGS if TAGS[tagName][1]==line[primFinPosTags:(primFinPosTags+tagLength)]]  
-						if len(tagName1)>0 and len(tagName2)>0:
-							tagName1=tagName1[0]
-							tagName2=tagName2[0]
-						else: #If there was a seq error in the tags
-							return [1]
+                                                        Info=[tagName2, tagName1 , PrimerName, between, 1]
+                                                        return Info
 				else:
-					return [1]
+					return [4]
 			else:
-				return [1]
-	Info=[tagName1, tagName2 , PrimerName, between]
-	return Info
-
+				return [5]
 
 
 def FillHAP(HAP, tagName1, tagName2 , PrimerName, between):

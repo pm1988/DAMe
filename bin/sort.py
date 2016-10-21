@@ -7,8 +7,8 @@ parser = argparse.ArgumentParser(description='Sort amplicon sequences tagged on 
 parser.add_argument("-fq", required=True, help='Input fastq with amplicon sequences')
 parser.add_argument("-p",  required=True, help='Input text file with primer name and forward and reverse sequences [Format: Name\tForwardSeq\tReverSeq]')
 parser.add_argument("-t",  required=True, help='Input text file with tag names and sequences [Format: TagSeq\tTagName]')
-parser.add_argument("--keepPrimersSeq",  help='Use this parameter if you want to keep the primer sequences from the amplicon instead of trimming it [default not set]', action="store_true")
-parser.add_argument("-l", "--longestTagMatch", dest="longest", help='Find best longest match - useful if all tags are not the same length', action="store_true")
+#parser.add_argument("--keepPrimersSeq",  help='Use this parameter if you want to keep the primer sequences from the amplicon instead of trimming it [default not set]', action="store_true")
+#parser.add_argument("-l", "--longestTagMatch", dest="longest", help='Find best longest match - useful if all tags are not the same length', action="store_true")
 
 args = parser.parse_args()
 
@@ -22,9 +22,7 @@ import gzip as gz
 filename= args.fq 
 primers= args.p
 tags= args.t
-keepPrimersSeq=args.keepPrimersSeq
-
-CountErrors=0
+#keepPrimersSeq=args.keepPrimersSeq
 
 #Initialize dict
 AMBIG={'A' : "A", 'B' : "[CGT]", 'C' : "C", 'D' : "[AGT]", 'G' : "G", 'H' : "[ACT]", 'K' : "[GT]", 'M' : "[AC]", 'N' : "[ACGT]", 'R' : "[AG]", 'S' : "[CG]", 'T' : "T", 'V' : "[ACG]", 'W' : "[AT]", 'Y' : "[CT]"}
@@ -37,14 +35,15 @@ HAP={}
 
 ### Read tags [Format:  TagSeq\tTagName]
 (TAGS, tagLength)=readTags(tags, TAGS)
-if tagLength == 0 and not args.longest:
+if tagLength == 0:
         print 'Tags are not all the same length.'
-        print 'By default, the option to choose longest best match has been enabled.'
-        args.longest = True
+        print 'Among the tags with no mismatches, the longest one will be retained.\n'
 
 ### Read primers [Format:  PrimerSetName\tForwardSeq\tReverSeq]
 PRIMERS=readPrimers(primers, PRIMERS, AMBIG)
 
+CountErrors=[0,0,0,0,0]
+numTags = [0,0]
 ### Sort the sequences into tag combinatios and collapse them
 if (filename[-3:] == ".gz"):
 	file = gz.open(filename)
@@ -55,14 +54,15 @@ while line:
 	line= file.readline()  ### seq line. 
 	line=line.rstrip()
 	## Find primer and tags. RC the between if reverse. If it does not exist in the list (seq err or Ns or whatever) set a flag called Error
-	Info= GetPiecesInfo(line, PRIMERS, TAGS, keepPrimersSeq, tagLength)
+	Info= GetPiecesInfo(line, PRIMERS, TAGS)
 	if len(Info)==1: # If there's a seq error
 		line= file.readline()  ## "+" line. Ignore
 		line= file.readline() ## Qual line. Ignore
 		line= file.readline() # header line. 
-		CountErrors+=1
+		CountErrors[Info[0] - 1] +=1
 	else:
 		HAP=FillHAP(HAP, Info[0], Info[1], Info[2],Info[3])
+                numTags[Info[4]] += 1
 		line= file.readline()  ## "+" line. Ignore
 		line= file.readline() ## Qual line. Ignore
 		line= file.readline() # header line. 
@@ -76,5 +76,13 @@ PrintSortedCollapsedCountedSeqs(HAP)
 PrintSummaryFile(HAP)
 
 ## Report how many seqs had errors in the primer or in the tags
-print "Number of erroneous sequences in file", filename, "(with errors in the sequence of primer or tags, or no barcode amplified):", CountErrors
+print "Number of erroneous sequences in file", filename, "(with errors in the sequence of primer or tags, or no barcode amplified):", sum(CountErrors)
+print "    No sequence between primers         :", CountErrors[0]
+print "    Tags pair not found                 :", CountErrors[1]
+print "    F primer found, R' primer not found :", CountErrors[2]
+print "    R primer found, F' primer not found :", CountErrors[3]
+print "    Neither F nor R primer found        :", CountErrors[4]
+print "\nNumber of valid tag pairs found         :", sum(numTags)
+print "    F-R' barcodes found                 :", numTags[0]
+print "    R-F' barcodes found                 :", numTags[1]
 
