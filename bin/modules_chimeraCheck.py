@@ -131,7 +131,7 @@ def SortFasta(P):
 
 
 
-def MakeFasSeqOneLine(P):
+def MakeFasSeqOneLine(P, outChim=False):
 	for pool in range(P):
 		fasta=open("Pool%s.noChim.fasta"%(pool+1))
 		fastaOne=open("Pool%s.noChim.oneLiner.fasta"%(pool+1), "w")
@@ -149,6 +149,24 @@ def MakeFasSeqOneLine(P):
 			line= fasta.readline()
 		fastaOne.write("%s\n"%(seq)) #Print the last seq
 		fastaOne.close()
+	if outChim:
+		for pool in range(P):
+			fasta=open("Pool%s.Chim.fasta"%(pool+1))
+			fastaOne=open("Pool%s.Chim.oneLiner.fasta"%(pool+1), "w")
+			line= fasta.readline()	
+			seq=""
+			while line:
+				line=line.rstrip()
+				if line.find(">")==0:  #If it's a header
+					if len(seq)>0: ## Print the seq if this is not the first entry
+						fastaOne.write("%s\n"%(seq))
+					fastaOne.write("%s\n"%(line))
+					seq=""
+				else:
+					seq+=line
+				line= fasta.readline()
+			fastaOne.write("%s\n"%(seq)) #Print the last seq
+			fastaOne.close()
 
 
 
@@ -193,4 +211,44 @@ def MakeNoChimHaps(P):
 			out.write(a)
 		out.close()
 
+def MakeChimHaps(P):
+	HAP={}
+	for pool in range(P):
+		fasta=open("Pool%s.Chim.oneLiner.fasta"%(pool+1))
+		line= fasta.readline()	
+		while line:
+			line=line.rstrip()
+			if line.find(">")==0:  #If it's a header
+				line=re.sub(">", "", line)
+				primerName=line.split("_")[0]
+				tagName1=line.split("_")[1]
+				tagName2=line.split("_")[2]
+				freq=line.split("=")[1]
+				#Add tags to HAP if it doesn't have it already.  
+				tagHapKey="_".join([tagName1, tagName2, str(pool+1)])
+				if not HAP.has_key(tagHapKey):   ##key is the Tag1_Tag2  # When they are the first one
+					HAP[tagHapKey]=[[],[],[],[],[]] # primerName, tag1, tag2, Freq, Seq  
+					HAP[tagHapKey][0]=[primerName]
+					HAP[tagHapKey][1]=[tagName1]
+					HAP[tagHapKey][2]=[tagName2]
+					HAP[tagHapKey][3]=[freq]
+				else: # If they are not the first one
+					HAP[tagHapKey][0].append(primerName)
+					HAP[tagHapKey][1].append(tagName1)
+					HAP[tagHapKey][2].append(tagName2)
+					HAP[tagHapKey][3].append(freq)
+			else: ##If its the seq
+				if len(HAP[tagHapKey][4])==0: ## If it's the first one
+					HAP[tagHapKey][4]=[line+"\n"]
+				else:
+					HAP[tagHapKey][4].append(line+"\n")
+			line= fasta.readline()
+		fasta.close()
+	#Now print the HAP		
+	for TagComb in HAP:
+		out=open("%s.Chim.txt"%(TagComb), "w")
+		for i in range(len(HAP[TagComb][0])):
+			a="\t".join([ HAP[TagComb][0][i], HAP[TagComb][1][i], HAP[TagComb][2][i], HAP[TagComb][3][i], HAP[TagComb][4][i] ])
+			out.write(a)
+		out.close()
 

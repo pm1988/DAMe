@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description='Create necessary files to operate 
 parser.add_argument("-psInfo", required=True, help='Text file with the information on the tag combination in each PCR reaction for every sample [Format: sampleName\tTagNameForwardFromPCR1\tTagNameReverseFromPCR1\tPool#\nsampleName\tTagNameForwardFromPCR2\tTagNameReverseFromPCR2\tPool#\n...]')
 parser.add_argument("-x", required=True, type=int, help='Number of PCR rxns performed per sample')
 parser.add_argument("-p", type=int, default=1, help='The number of pools in which the samples were divided for sequencing (in case of tag combinations repetition due to processing so many samples) [default 1]\nNOTE: If using pools, each fastq must be in a folder called pool#, in which the sort.py was run for each pool inside the corresponding folder, and this program chimeraCheck.py is run in the parent directory of the pools directories')
+parser.add_argument("-chim", required=False, action='store_true', help='Output files with chimeric reads.')
 
 args = parser.parse_args()
 
@@ -45,8 +46,9 @@ SortFasta(P)
 
 ## Bring the noChim fasta back to the hap format fileS... sort it into the tagCombs
 #Make the fastas one liners
-MakeFasSeqOneLine(P)
+MakeFasSeqOneLine(P, args.chim)
 #sort it into the tagCombs  
 MakeNoChimHaps(P)
-
+if args.chim:
+	MakeChimHaps(P)
 
