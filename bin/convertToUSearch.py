@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 ################################################ 
 # Convert the FilteredReads.fna file to format #
 # accepted by Usearch or sumaclust.            #

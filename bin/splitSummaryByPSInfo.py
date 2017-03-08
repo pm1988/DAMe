@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 #####################################################
 # Helper script to parse the SummaryCounts.txt file #
 # by the used, 1-used and unused tag combinations.  #

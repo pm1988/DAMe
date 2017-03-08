@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 ###############################################################
 # Python script to plot the per sample length distribution and#
 # make a summary file with the counts from each pool.         #
