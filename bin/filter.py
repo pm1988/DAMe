@@ -56,7 +56,7 @@ PSinsLines=ReadPSnumFiles(X, args.out)
 sampleName=MakeSampleNameArray(PSinfo)
 
 # Compare all the samples
-for i in range(len(PSinsLines["1"])):
+for i in range(len(PSinsLines["0"])):
 	#Read the haps files that are on PSinsLines paths for sample A
 	haps=ReadHapsForASample(X, PSinsLines, i )
 	#Get all the seqs (as well as its F, R, and counts info) for each PSnum files and get a nr set of them (seqsALL)
