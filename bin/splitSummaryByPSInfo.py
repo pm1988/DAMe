@@ -47,21 +47,43 @@ bothused = []
 oneused = []
 unused = []
 
+countsTots = [0,0,0,0]
+countsUniq = [0,0,0,0]
+
 for line in sumfile:
     toks = line.strip().split()
     tp = (toks[0], toks[1])
-    if tp in tagpair:
+    if tp in tagpair:        
         usedpair.append(line)
+        countsTots[0] += int(toks[3])
+        countsUniq[0] += int(toks[2])
     elif toks[0] in usedtags and toks[1] in usedtags:
         bothused.append(line)
+        countsTots[1] += int(toks[3])
+        countsUniq[1] += int(toks[2])
     elif toks[0] in usedtags or toks[1] in usedtags:
         oneused.append(line)
+        countsTots[2] += int(toks[3])
+        countsUniq[2] += int(toks[2])
     else:
         unused.append(line)
+        countsTots[3] += int(toks[3])
+        countsUniq[3] += int(toks[2])
 
 sumfile.close()
 
+pctTots = [str(round(x*100.0/sum(countsTots),2)) for x in countsTots]
+pctUniq = [str(round(x*100.0/sum(countsUniq),2)) for x in countsUniq]
+
 outfile = open(args.output, "w")
+outfile.write("                                                    \tTotal unique seqs\tTotal seqs\t% Total unique seqs\t%Total seqs\n")
+outfile.write("Tag combinations where the tag pair was used        \t"+str(countsTots[0])+"\t"+str(countsUniq[0])+"\t"+pctTots[0]+"\t"+pctUniq[0]+"\n")
+outfile.write("Tag combinations where both tags used\n")
+outfile.write("but not in this combination                         \t"+str(countsTots[1])+"\t"+str(countsUniq[1])+"\t"+pctTots[1]+"\t"+pctUniq[1]+"\n")
+outfile.write("Tag combinations where only one of the tags was used\t"+str(countsTots[2])+"\t"+str(countsUniq[2])+"\t"+pctTots[2]+"\t"+pctUniq[2]+"\n")
+outfile.write("Tag combinations where neither tag was used         \t"+str(countsTots[3])+"\t"+str(countsUniq[3])+"\t"+pctTots[3]+"\t"+pctUniq[3]+"\n")
+outfile.write("Total                                               \t"+str(sum(countsTots))+"\t"+str(sum(countsUniq))+"\t100.00\t100.00\n\n")
+
 outfile.write("Tag combinations where the tag pair was used.\n")
 outfile.write("---------------------------------------------\n")
 outfile.write("Tag1Name\tTag2Name\tNumUniqSeqs\tSumTotalFreq\n")
@@ -81,6 +103,9 @@ outfile.write("Tag combinations where neither tag was used.\n")
 outfile.write("--------------------------------------------\n")
 outfile.write("Tag1Name\tTag2Name\tNumUniqSeqs\tSumTotalFreq\n")
 outfile.write("".join(unused))
+
+
+
 outfile.close()
 
         
