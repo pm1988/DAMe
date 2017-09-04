@@ -76,7 +76,7 @@ pctTots = [str(round(x*100.0/sum(countsTots),2)) for x in countsTots]
 pctUniq = [str(round(x*100.0/sum(countsUniq),2)) for x in countsUniq]
 
 outfile = open(args.output, "w")
-outfile.write("                                                    \tTotal unique seqs\tTotal seqs\t% Total unique seqs\t%Total seqs\n")
+outfile.write("                                                    \tTotal seqs\tTotal unique seqs\t% Total seqs\t%Total unique seqs\n")
 outfile.write("Tag combinations where the tag pair was used        \t"+str(countsTots[0])+"\t"+str(countsUniq[0])+"\t"+pctTots[0]+"\t"+pctUniq[0]+"\n")
 outfile.write("Tag combinations where both tags used\n")
 outfile.write("but not in this combination                         \t"+str(countsTots[1])+"\t"+str(countsUniq[1])+"\t"+pctTots[1]+"\t"+pctUniq[1]+"\n")
