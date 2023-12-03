@@ -3,7 +3,7 @@
 #########################################################
 # File: tabulateSumaclust.py                            #
 # Author: Shyam Gopalakrishnan                          #
-# Date: 15th February 2016                              #
+# Date: 24th November 2023                              #
 # Description: This script takes the output fasta from  #
 # sumaclust and converts it to a tab separated text file#
 # with the counts for each sample and each otu.         #
@@ -25,11 +25,11 @@ if __name__ == '__main__':
     if args.out == "":
         args.out = "SampleVsOTUs.txt"
     if args.blast and args.bold:
-        print "You can use only one of -blast and -bold."
-        print "Choosing the blast option."
+        print("You can use only one of -blast and -bold.")
+        print("Choosing the blast option.")
         args.bold = False
     if args.bold:
-        print "The -bold option is not implemented yet."
+        print("The -bold option is not implemented yet.")
         args.bold = False
 
 
@@ -52,7 +52,6 @@ for line in infile:
         ## so save the seq
         if (seq != ""):
             otuSeq[otunum[clustname]] = seq
-            #print otunum[clustname], clustname, seq
             seq = ""
         (sample, count, clustname) = (toks[0].split(":")[0], int(toks[1].split('=')[1][0:-1]), toks[3].split('=')[1][0:-1])
         if clustname not in otunum:
@@ -76,7 +75,7 @@ if seq != "":
     otuSeq[otunum[clustname]] = seq
             
 infile.close()
-print "Read data for", len(samples), "samples and", len(otunum), "OTUs."
+print("Read data for", len(samples), "samples and", len(otunum), "OTUs.")
 
 if args.scale > 0:
     for sample in samples:
@@ -87,7 +86,7 @@ if args.scale > 0:
         for otu in range(1,len(otunum)+1):
             if sample in countMatrix["OTU"+str(otu)]:
                 countMatrix["OTU"+str(otu)][sample] = int(countMatrix["OTU"+str(otu)][sample]*args.scale*1.0/sampleTotal)
-    print "Scaled all samples to", args.scale, "reads."
+    print("Scaled all samples to", args.scale, "reads.")
 
 outfile = open(args.out, "w")
 if args.blast:
@@ -113,5 +112,5 @@ for index in range(1,len(otunum)+1):
 outfile.close()
 if args.blast:
     blastfile.close()
-    print "Blast can be run using the blast input fasta file:", args.out+".blast.txt"
+    print("Blast can be run using the blast input fasta file:", args.out+".blast.txt")
     
